@@ -54,10 +54,7 @@ func main() {
 	} else {
 
 		for _, dataIn := range args {
-
-			fmt.Println(dataIn)
 			idecode(dataIn)
-
 		}
 	}
 }
@@ -83,7 +80,7 @@ func idecode(dataIn string) {
 	portion := height / threads
 	threadLines := portion * threads
 	extra := height - threadLines
-	fmt.Printf("Height: %v Portion: %v Extra: %v\n", height, portion, extra)
+	fmt.Printf("Image: %v Height: %v Portion: %v Extra: %v\n", file.Name(), height, portion, extra)
 
 	targetY := 0
 	startY := 0
@@ -93,8 +90,9 @@ func idecode(dataIn string) {
 	for thread := 0; thread < threads; thread++ {
 		targetY += threadLines
 
-		if thread == threads-1 {
-			targetY += extra
+		if extra > 0 {
+			targetY++
+			extra--
 		}
 
 		go encode(img, startY, targetY, width, ch)
@@ -160,8 +158,6 @@ func openFile(dataIn string) *os.File {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(thing.Name())
-
 	return thing
 }
 
@@ -173,10 +169,11 @@ type colorHEX struct {
 }
 
 func (c colorHEX) RGBA() string {
-	return fmt.Sprintf("#%v%v%v%v", c.R, c.G, c.B, c.A)
+	return fmt.Sprintf("#%v,%v,%v,%v", c.R, c.G, c.B, c.A)
 }
 
 func (c colorHEX) RGB() string {
+
 	return fmt.Sprintf("#%v%v%v", c.R, c.G, c.B)
 }
 
@@ -204,6 +201,11 @@ func uint2col(color uint32) string {
 	if last := len(col) - 2; last >= 0 {
 		col = col[:last+1]
 		col = col[:last]
+	}
+	if len(col) < 1 {
+		col = "00"
+	} else if len(col) < 2 {
+		col = "0" + col
 	}
 	return col
 }
