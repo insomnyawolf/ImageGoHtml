@@ -21,13 +21,11 @@ func (c colorHEX) RGB() string {
 }
 
 func color2RGBAHex(r, g, b, a uint32) *colorHEX {
-
 	cl := &colorHEX{}
 	cl.R = uint2col(r)
 	cl.G = uint2col(g)
 	cl.B = uint2col(b)
 	cl.A = alpha(a)
-
 	return cl
 }
 
@@ -37,9 +35,7 @@ func alpha(color uint32) string {
 }
 
 func uint2col(color uint32) string {
-
 	col := strconv.FormatUint(uint64(color), 16)
-
 	if last := len(col) - 2; last >= 0 {
 		col = col[:last+1]
 		col = col[:last]

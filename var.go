@@ -1,8 +1,8 @@
 package main
 
-import "runtime"
-
-const ()
+import (
+	"runtime"
+)
 
 var (
 	threads             = runtime.NumCPU()
