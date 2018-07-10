@@ -3,17 +3,22 @@ package main
 import (
 	"fmt"
 	"image"
-	"image/gif"
-	"image/jpeg"
-	"image/png"
 	"io/ioutil"
 	"log"
 	"os"
-	"path"
-	"strings"
+
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 
 	"github.com/nfnt/resize"
+	"github.com/schollz/progressbar"
 )
+
+type progressStat struct {
+	current int
+	total   int
+}
 
 func main() {
 
@@ -23,30 +28,24 @@ func main() {
 	argsLenght := len(args)
 
 	if argsLenght == 0 {
+		path, _ := os.Executable()
+		fmt.Printf("%v (path to pic)", path)
 
-		go fmt.Println("no value input. Default test value")
-
-		dataIn := "test.jpg"
-		idecode(dataIn)
+		//idecode(dataIn, &progressStat{current:current, total:argsLenght})
 
 	} else {
-
-		for _, dataIn := range args {
-			idecode(dataIn)
+		for current, dataIn := range args {
+			idecode(dataIn, &progressStat{current: (current + 1), total: argsLenght})
 		}
-
 	}
 }
 
-func idecode(dataIn string) {
+func idecode(dataIn string, progress *progressStat) {
 	file := OpenFile(dataIn)
 	defer file.Close()
 
-	fmt.Println("Decoding file")
-
 	img := decode(file)
 
-	fmt.Println("Resizing file")
 	img = resize.Thumbnail(thumbnailSize, thumbnailSize, img, resize.Lanczos3)
 
 	imgc := img.Bounds()
@@ -56,10 +55,15 @@ func idecode(dataIn string) {
 
 	fmt.Printf("Image: %v Width: %v Height: %v \n", file.Name(), width, height)
 
+	bar := progressbar.NewOptions(
+		height,
+		progressbar.OptionSetTheme(progressbar.Theme{Saucer: "#", SaucerPadding: "-", BarStart: ">", BarEnd: "<"}),
+		progressbar.OptionSetDescription(fmt.Sprintf("[%v/%v] Encoding...", progress.current, progress.total)),
+		progressbar.OptionSetWidth(100),
+	)
+
 	var ch []chan []byte
 	done := make(chan struct{}, height)
-
-	fmt.Println("Working...")
 
 	for y := 0; y < height; y++ {
 
@@ -77,6 +81,7 @@ func idecode(dataIn string) {
 		}
 
 		go encode(&e)
+		bar.Add(1)
 
 	} //Yloop
 
@@ -88,6 +93,8 @@ func idecode(dataIn string) {
 
 	data = append(data, "</tbody></table></body></html>"...)
 
+	fmt.Println("")
+
 	result := file.Name() + ".html"
 	if Exists(result) {
 		os.Remove(result)
@@ -95,36 +102,11 @@ func idecode(dataIn string) {
 	ioutil.WriteFile(result, data, 7777)
 }
 
+//Ways to optimize that?
 func decode(file *os.File) image.Image {
-	ext := path.Ext(file.Name())
-	ext = strings.TrimPrefix(ext, ".")
-	ext = strings.ToLower(ext)
-	var img image.Image
-	var err error
-	switch ext {
-	case "png":
-		img, err = png.Decode(file)
-		if err != nil {
-			log.Fatal(err)
-		}
-	case "jpg":
-	case "jpeg":
-		img, err = jpeg.Decode(file)
-		if err != nil {
-			log.Fatal(err)
-		}
-	case "gif":
-		img, err = gif.Decode(file)
-		if err != nil {
-
-		}
-	default:
-		fmt.Println("default" + ext)
-		img, _, err = image.Decode(file)
-		if err != nil {
-			log.Fatal(err)
-		}
-
+	img, _, err := image.Decode(file)
+	if err != nil {
+		log.Fatal(err)
 	}
 	return img
 }

@@ -6,6 +6,6 @@ import (
 
 var (
 	threads             = runtime.NumCPU()
-	thumbnailSize  uint = 128
+	thumbnailSize  uint = 2500
 	alphaPendiente      = float64(1) / float64(65535)
 )
