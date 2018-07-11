@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"image"
 	"io/ioutil"
@@ -12,13 +13,8 @@ import (
 	_ "image/png"
 
 	"github.com/nfnt/resize"
-	"github.com/schollz/progressbar"
+	"golang.org/x/sync/semaphore"
 )
-
-type progressStat struct {
-	current int
-	total   int
-}
 
 func main() {
 
@@ -31,7 +27,7 @@ func main() {
 		path, _ := os.Executable()
 		fmt.Printf("%v (path to pic)", path)
 
-		//idecode(dataIn, &progressStat{current:current, total:argsLenght})
+		ReadLine()
 
 	} else {
 		for current, dataIn := range args {
@@ -55,34 +51,28 @@ func idecode(dataIn string, progress *progressStat) {
 
 	fmt.Printf("Image: %v Width: %v Height: %v \n", file.Name(), width, height)
 
-	bar := progressbar.NewOptions(
-		height,
-		progressbar.OptionSetTheme(progressbar.Theme{Saucer: "#", SaucerPadding: "-", BarStart: ">", BarEnd: "<"}),
-		progressbar.OptionSetDescription(fmt.Sprintf("[%v/%v] Encoding...", progress.current, progress.total)),
-		progressbar.OptionSetWidth(100),
-	)
+	progress.height = height
+	bar := NewProgressBar(progress)
 
 	var ch []chan []byte
-	done := make(chan struct{}, height)
+	ctx := context.TODO()
+	sem := semaphore.NewWeighted(int64(threads))
 
 	for y := 0; y < height; y++ {
-
+		sem.Acquire(ctx, 1)
 		ch = append(ch, make(chan []byte))
-
-		e := enc{
+		e := &enc{
 			img:   img,
 			y:     y,
 			width: width,
 			ch:    ch[y],
-			done:  done,
 		}
-		if y > threads {
-			<-done
-		}
-
-		go encode(&e)
-		bar.Add(1)
-
+		go func(ec *enc) {
+			ans := encode(ec)
+			bar.Add(1)
+			sem.Release(1)
+			ec.ch <- ans
+		}(e)
 	} //Yloop
 
 	data := []byte("<html><body><table border=\"0\" cellpadding=\"1\" cellspacing=\"0\"><tbody>" + "\n")

@@ -5,6 +5,10 @@ import (
 	"strconv"
 )
 
+const (
+	alphaPendiente = float64(1) / float64(65535)
+)
+
 type colorHEX struct {
 	R string
 	G string

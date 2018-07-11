@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	threads             = runtime.NumCPU()
-	thumbnailSize  uint = 2500
-	alphaPendiente      = float64(1) / float64(65535)
+	threads            = runtime.NumCPU()
+	thumbnailSize uint = 512
+	coloredOutput      = false
 )

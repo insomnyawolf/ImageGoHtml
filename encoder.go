@@ -10,10 +10,9 @@ type enc struct {
 	y     int
 	width int
 	ch    chan []byte
-	done  chan struct{}
 }
 
-func encode(e *enc) {
+func encode(e *enc) []byte {
 	buffer := []byte("<tr>")
 	colspan := 1
 
@@ -36,6 +35,5 @@ func encode(e *enc) {
 		}
 	} //Xloop
 	buffer = append(buffer, "</tr>"...)
-	e.done <- struct{}{}
-	e.ch <- buffer
+	return buffer
 }
