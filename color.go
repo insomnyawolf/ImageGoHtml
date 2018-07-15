@@ -17,11 +17,11 @@ type colorHEX struct {
 }
 
 func (c colorHEX) RGBA() string {
-	return fmt.Sprintf("#%v%v%v%v", c.R, c.G, c.B, c.A)
+	return fmt.Sprintf("%v%v%v%v", c.R, c.G, c.B, c.A)
 }
 
 func (c colorHEX) RGB() string {
-	return fmt.Sprintf("#%v%v%v", c.R, c.G, c.B)
+	return fmt.Sprintf("%v%v%v", c.R, c.G, c.B)
 }
 
 func color2RGBAHex(r, g, b, a uint32) *colorHEX {

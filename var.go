@@ -5,7 +5,6 @@ import (
 )
 
 var (
-	threads            = runtime.NumCPU()
-	thumbnailSize uint = 512
-	coloredOutput      = false
+	cnf     myConf
+	threads = runtime.NumCPU()
 )

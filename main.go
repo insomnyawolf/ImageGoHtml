@@ -16,6 +16,10 @@ import (
 	"golang.org/x/sync/semaphore"
 )
 
+func init() {
+	config()
+}
+
 func main() {
 
 	fmt.Println("Testing Build")
@@ -42,12 +46,18 @@ func idecode(dataIn string, progress *progressStat) {
 
 	img := decode(file)
 
-	img = resize.Thumbnail(thumbnailSize, thumbnailSize, img, resize.Lanczos3)
-
 	imgc := img.Bounds()
-
 	height := imgc.Max.Y
 	width := imgc.Max.X
+
+	if cnf.IsResized {
+		if uint(height) > cnf.MaxSize || uint(width) > cnf.MaxSize {
+			img = resize.Thumbnail(cnf.MaxSize, cnf.MaxSize, img, resize.Lanczos3)
+			imgc = img.Bounds()
+			height = imgc.Max.Y
+			width = imgc.Max.X
+		}
+	}
 
 	fmt.Printf("Image: %v Width: %v Height: %v \n", file.Name(), width, height)
 
@@ -75,13 +85,29 @@ func idecode(dataIn string, progress *progressStat) {
 		}(e)
 	} //Yloop
 
-	data := []byte("<html><body><table border=\"0\" cellpadding=\"1\" cellspacing=\"0\"><tbody>" + "\n")
+	bar.Finish()
 
+	canvasID := "c"
+
+	data := []byte(
+		fmt.Sprintf("<html>"+
+			"<body>"+
+			"<canvas id=\"%v\" width=\"%v\" height=\"%v\"></canvas>"+
+			"<script>"+
+			"var ct=document.getElementById(\"%v\");"+
+			"var c=ct.getContext(\"2d\");"+
+			"function d(color , y, startX, endX){"+
+			"c.fillStyle='#'+color;"+
+			"c.fillRect(startX,y,endX,y);"+
+			"}",
+			canvasID, width, height, canvasID),
+	)
+	data = append(data, ""...)
 	for _, c := range ch {
 		data = append(data, <-c...)
 	}
 
-	data = append(data, "</tbody></table></body></html>"...)
+	data = append(data, "</script></body></html>"...)
 
 	fmt.Println("")
 

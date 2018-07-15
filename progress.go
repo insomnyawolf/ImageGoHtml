@@ -15,20 +15,20 @@ type progressStat struct {
 
 //NewProgressBar creates a new progressbar
 func NewProgressBar(progress *progressStat) *progressbar.ProgressBar {
-	if coloredOutput {
+	if cnf.IsColored {
 		return progressbar.NewOptions(
 			progress.height,
 			progressbar.OptionSetWriter(ansi.NewAnsiStdout()),
-			progressbar.OptionSetWidth(100),
+			//progressbar.OptionSetWidth(100),
 			//progressbar.OptionSetBytes(10000),
 			progressbar.OptionSetRenderBlankState(true),
 			progressbar.OptionEnableColorCodes(true),
 			progressbar.OptionSetDescription(
-				fmt.Sprintf("[cyan][%v/%v][reset] Encoding...", progress.current, progress.total),
+				fmt.Sprintf("[%v][%v/%v][reset] Encoding...", cnf.Color, progress.current, progress.total),
 			),
 			progressbar.OptionSetTheme(
 				progressbar.Theme{
-					Saucer: "[cyan]#[reset]",
+					Saucer: fmt.Sprintf("[%v]#[reset]", cnf.Color),
 					//SaucerHead:    ">",
 					SaucerPadding: "-",
 					BarStart:      ">",
@@ -39,7 +39,7 @@ func NewProgressBar(progress *progressStat) *progressbar.ProgressBar {
 	}
 	return progressbar.NewOptions(
 		progress.height,
-		progressbar.OptionSetWidth(100),
+		//progressbar.OptionSetWidth(100),
 		//progressbar.OptionSetBytes(10000),
 		progressbar.OptionSetRenderBlankState(true),
 		progressbar.OptionSetDescription(
